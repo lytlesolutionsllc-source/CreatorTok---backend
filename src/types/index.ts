@@ -21,13 +21,3 @@ export function ok<T>(data: T): ApiResponse<T> {
 export function fail(error: string): ApiResponse<never> {
   return { success: false, error };
 }
-
-// ─── Post status enum ────────────────────────────────────────────────────────
-
-export enum PostStatus {
-  DRAFT = 'DRAFT',
-  SCHEDULED = 'SCHEDULED',
-  PUBLISHING = 'PUBLISHING',
-  PUBLISHED = 'PUBLISHED',
-  FAILED = 'FAILED',
-}

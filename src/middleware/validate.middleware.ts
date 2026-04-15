@@ -11,7 +11,7 @@ type FieldSpec = {
  * Middleware factory that validates presence of required body fields.
  *
  * Usage:
- *   router.post('/register', validate([{ field: 'email' }, { field: 'password' }]), handler)
+ *   router.post('/register', validate([{ field: 'email', type: 'string' }, { field: 'password', type: 'string' }]), handler)
  */
 export function validate(fields: FieldSpec[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
