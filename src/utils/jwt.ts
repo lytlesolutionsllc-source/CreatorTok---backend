@@ -7,9 +7,9 @@ export interface TokenPayload {
 }
 
 export function generateToken(userId: string): string {
-  return jwt.sign({ userId }, config.jwtSecret, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign({ userId }, config.jwtSecret, { algorithm: 'HS256', expiresIn: JWT_EXPIRES_IN });
 }
 
 export function verifyToken(token: string): TokenPayload {
-  return jwt.verify(token, config.jwtSecret) as TokenPayload;
+  return jwt.verify(token, config.jwtSecret, { algorithms: ['HS256'] }) as TokenPayload;
 }
