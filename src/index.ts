@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import rateLimit from 'express-rate-limit';
 
 dotenv.config();
 
@@ -25,6 +26,24 @@ app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ─── Rate limiting ────────────────────────────────────────────────────────────
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many requests, please try again later' },
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many requests, please try again later' },
+});
+
 // ─── Health check ─────────────────────────────────────────────────────────────
 
 app.get('/api/health', (_req, res) => {
@@ -33,10 +52,10 @@ app.get('/api/health', (_req, res) => {
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
-app.use('/api/auth', authRoutes);
-app.use('/api/accounts', accountRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/schedules', scheduleRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/accounts', apiLimiter, accountRoutes);
+app.use('/api/posts', apiLimiter, postRoutes);
+app.use('/api/schedules', apiLimiter, scheduleRoutes);
 
 // ─── 404 handler ──────────────────────────────────────────────────────────────
 

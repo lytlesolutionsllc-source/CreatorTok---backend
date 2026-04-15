@@ -1,4 +1,5 @@
 import { Response, NextFunction } from 'express';
+import { PostStatus } from '@prisma/client';
 import { AuthRequest, ok, fail } from '../types';
 import prisma from '../services/prisma.service';
 
@@ -48,7 +49,7 @@ export async function createPost(req: AuthRequest, res: Response, next: NextFunc
         videoUrl,
         thumbnailUrl,
         hashtags: hashtags ?? [],
-        status: (status as any) ?? 'DRAFT',
+        status: (status as PostStatus) ?? PostStatus.DRAFT,
         scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
       },
     });
@@ -106,7 +107,7 @@ export async function updatePost(req: AuthRequest, res: Response, next: NextFunc
         ...(videoUrl !== undefined && { videoUrl }),
         ...(thumbnailUrl !== undefined && { thumbnailUrl }),
         ...(hashtags !== undefined && { hashtags }),
-        ...(status !== undefined && { status: status as any }),
+        ...(status !== undefined && { status: status as PostStatus }),
         ...(scheduledAt !== undefined && { scheduledAt: new Date(scheduledAt) }),
       },
     });
