@@ -18,7 +18,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 export const config = {
   port: parseInt(optional('PORT', '5000'), 10),
-  databaseUrl: optional('DATABASE_URL', 'postgresql://user:password@localhost:5432/creatortok'),
+  databaseUrl: isProduction ? required('DATABASE_URL') : optional('DATABASE_URL', ''),
   jwtSecret: isProduction ? required('JWT_SECRET') : optional('JWT_SECRET', 'change-me-in-development'),
   redisUrl: optional('REDIS_URL', 'redis://localhost:6379'),
   tiktokClientKey: optional('TIKTOK_CLIENT_KEY', ''),
