@@ -69,7 +69,7 @@ app.use(errorMiddleware);
 
 // ─── Start server ─────────────────────────────────────────────────────────────
 
-if (process.env.NODE_ENV !== 'test') {
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
   app.listen(config.port, () => {
     console.log(`🚀 Server running on port ${config.port}`);
   });
