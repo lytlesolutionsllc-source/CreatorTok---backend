@@ -14,13 +14,11 @@ function optional(key: string, fallback: string): string {
   return process.env[key] ?? fallback;
 }
 
-const isProduction = process.env.NODE_ENV === 'production';
-
 export const config = {
   port: parseInt(optional('PORT', '5000'), 10),
-  databaseUrl: isProduction ? required('DATABASE_URL') : optional('DATABASE_URL', ''),
-  jwtSecret: isProduction ? required('JWT_SECRET') : optional('JWT_SECRET', 'change-me-in-development'),
-  redisUrl: optional('REDIS_URL', 'redis://localhost:6379'),
+  databaseUrl: required('DATABASE_URL'),
+  jwtSecret: required('JWT_SECRET'),
+  redisUrl: optional('REDIS_URL', ''),
   tiktokClientKey: optional('TIKTOK_CLIENT_KEY', ''),
   tiktokClientSecret: optional('TIKTOK_CLIENT_SECRET', ''),
   nodeEnv: optional('NODE_ENV', 'development'),
