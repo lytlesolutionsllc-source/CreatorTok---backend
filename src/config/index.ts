@@ -15,11 +15,11 @@ function optional(key: string, fallback: string): string {
 }
 
 export const config = {
-  port: parseInt(optional('PORT', '5000'), 10),
-  databaseUrl: required('DATABASE_URL'),
-  jwtSecret: required('JWT_SECRET'),
-  redisUrl: optional('REDIS_URL', ''),
-  tiktokClientKey: optional('TIKTOK_CLIENT_KEY', ''),
-  tiktokClientSecret: optional('TIKTOK_CLIENT_SECRET', ''),
-  nodeEnv: optional('NODE_ENV', 'development'),
-} as const;
+  get port() { return parseInt(optional('PORT', '5000'), 10); },
+  get databaseUrl() { return required('DATABASE_URL'); },
+  get jwtSecret() { return required('JWT_SECRET'); },
+  get redisUrl() { return optional('REDIS_URL', ''); },
+  get tiktokClientKey() { return optional('TIKTOK_CLIENT_KEY', ''); },
+  get tiktokClientSecret() { return optional('TIKTOK_CLIENT_SECRET', ''); },
+  get nodeEnv() { return optional('NODE_ENV', 'development'); },
+};
