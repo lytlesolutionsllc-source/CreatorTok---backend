@@ -1,1 +1,5 @@
-"postbuild": "cp dist/src/index.js api/index.js"
+{
+  "scripts": {
+    "postbuild": "cp dist/index.js api/index.js"
+  }
+}
