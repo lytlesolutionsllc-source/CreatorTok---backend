@@ -1,1 +1,9 @@
-{"version":2,"buildCommand":"prisma generate && prisma migrate deploy && tsc","outputDirectory":".","functions":{"api/**/*.js":{"includeFiles":"dist/**"}}}
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/(.*)", "destination": "/api" }
+  ]
+}
