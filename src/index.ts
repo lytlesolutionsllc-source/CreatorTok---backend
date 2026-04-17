@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -52,9 +52,7 @@ app.use((_req: Request, res: Response) => {
 });
 
 // Global error handler
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  errorMiddleware(err, req, res, next);
-});
+app.use(errorMiddleware);
 
 // Only listen when not running on Vercel
 if (!process.env.VERCEL) {

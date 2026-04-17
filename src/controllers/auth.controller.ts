@@ -33,6 +33,7 @@ export async function register(req: Request, res: Response): Promise<void> {
     const token = generateToken(user.id);
     res.status(201).json(successResponse({ user, token }));
   } catch (err) {
+    console.error('Registration error:', err);
     res.status(500).json(errorResponse('Registration failed'));
   }
 }
@@ -63,7 +64,8 @@ export async function login(req: Request, res: Response): Promise<void> {
       user: { id: user.id, email: user.email, name: user.name, createdAt: user.createdAt },
       token,
     }));
-  } catch {
+  } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json(errorResponse('Login failed'));
   }
 }

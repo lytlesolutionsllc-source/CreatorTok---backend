@@ -14,7 +14,7 @@ export function authMiddleware(
     return;
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.slice(7);
 
   try {
     const payload = verifyToken(token);

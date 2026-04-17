@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { config } from '../config';
 
 const TIKTOK_API_BASE = 'https://open.tiktokapis.com/v2';
 
@@ -7,8 +8,8 @@ export async function refreshTikTokToken(refreshToken: string): Promise<{
   refreshToken: string;
   expiresIn: number;
 }> {
-  const clientKey = process.env.TIKTOK_CLIENT_KEY || '';
-  const clientSecret = process.env.TIKTOK_CLIENT_SECRET || '';
+  const clientKey = config.tiktokClientKey;
+  const clientSecret = config.tiktokClientSecret;
 
   const response = await axios.post(`${TIKTOK_API_BASE}/oauth/token/`, {
     client_key: clientKey,
