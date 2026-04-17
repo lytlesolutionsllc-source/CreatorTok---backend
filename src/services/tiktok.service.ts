@@ -1,78 +1,50 @@
 import axios from 'axios';
-import { config } from '../config';
-import { TIKTOK_API_BASE } from '../utils/constants';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+const TIKTOK_API_BASE = 'https://open.tiktokapis.com/v2';
 
-export interface TikTokAccountInfo {
+export async function refreshTikTokToken(refreshToken: string): Promise<{
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+}> {
+  const clientKey = process.env.TIKTOK_CLIENT_KEY || '';
+  const clientSecret = process.env.TIKTOK_CLIENT_SECRET || '';
+
+  const response = await axios.post(`${TIKTOK_API_BASE}/oauth/token/`, {
+    client_key: clientKey,
+    client_secret: clientSecret,
+    grant_type: 'refresh_token',
+    refresh_token: refreshToken,
+  });
+
+  const { access_token, refresh_token, expires_in } = response.data;
+
+  return {
+    accessToken: access_token,
+    refreshToken: refresh_token,
+    expiresIn: expires_in,
+  };
+}
+
+export async function getUserInfo(accessToken: string): Promise<{
   openId: string;
   displayName: string;
   avatarUrl: string;
   followerCount: number;
-}
-
-export interface TikTokTokenResponse {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-}
-
-export interface TikTokUploadResult {
-  shareId: string;
-  videoId: string;
-}
-
-// ─── TikTok API client ────────────────────────────────────────────────────────
-
-const tiktokClient = axios.create({
-  baseURL: TIKTOK_API_BASE,
-  headers: { 'Content-Type': 'application/json' },
-});
-
-// ─── Service functions ────────────────────────────────────────────────────────
-
-/**
- * Retrieve basic account info for a TikTok user.
- * This is a scaffold — replace with the real TikTok API call when integrating.
- */
-export async function getAccountInfo(accessToken: string): Promise<TikTokAccountInfo> {
-  const response = await tiktokClient.get<{ data: { user: TikTokAccountInfo } }>(
-    '/user/info/',
-    { headers: { Authorization: `Bearer ${accessToken}` } },
-  );
-  return response.data.data.user;
-}
-
-/**
- * Upload a video to TikTok on behalf of the authenticated user.
- * This is a scaffold — replace with the real TikTok upload flow when integrating.
- */
-export async function uploadVideo(
-  accessToken: string,
-  videoUrl: string,
-  caption: string,
-  hashtags: string[],
-): Promise<TikTokUploadResult> {
-  const hashtagString = hashtags.map((h) => `#${h}`).join(' ');
-  const response = await tiktokClient.post<{ data: TikTokUploadResult }>(
-    '/share/video/upload/',
-    { videoUrl, caption: `${caption} ${hashtagString}`.trim() },
-    { headers: { Authorization: `Bearer ${accessToken}` } },
-  );
-  return response.data.data;
-}
-
-/**
- * Refresh a TikTok access token using the stored refresh token.
- */
-export async function refreshToken(refreshTokenValue: string): Promise<TikTokTokenResponse> {
-  const response = await tiktokClient.post<{ data: TikTokTokenResponse }>(
-    '/oauth/refresh_token/',
-    {
-      client_key: config.tiktokClientKey,
-      grant_type: 'refresh_token',
-      refresh_token: refreshTokenValue,
+}> {
+  const response = await axios.get(`${TIKTOK_API_BASE}/user/info/`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    params: {
+      fields: 'open_id,display_name,avatar_url,follower_count',
     },
-  );
-  return response.data.data;
+  });
+
+  const { open_id, display_name, avatar_url, follower_count } = response.data.data.user;
+
+  return {
+    openId: open_id,
+    displayName: display_name,
+    avatarUrl: avatar_url,
+    followerCount: follower_count,
+  };
 }

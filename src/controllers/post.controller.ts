@@ -1,139 +1,128 @@
-import { Response, NextFunction } from 'express';
-import { PostStatus } from '@prisma/client';
-import { AuthRequest, ok, fail } from '../types';
-import prisma from '../services/prisma.service';
+import { Response } from 'express';
+import { prisma } from '../services/prisma.service';
+import { AuthenticatedRequest, successResponse, errorResponse } from '../types';
 
-// GET /api/posts
-export async function getPosts(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function getPosts(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const posts = await prisma.post.findMany({
       where: { userId: req.userId },
       orderBy: { createdAt: 'desc' },
-      include: { tiktokAccount: { select: { accountName: true } } },
+      include: { tiktokAccount: true },
     });
-    res.json(ok(posts));
-  } catch (err) {
-    next(err);
+    res.json(successResponse({ posts }));
+  } catch {
+    res.status(500).json(errorResponse('Failed to fetch posts'));
   }
 }
 
-// POST /api/posts
-export async function createPost(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function getPost(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const { tiktokAccountId, caption, videoUrl, thumbnailUrl, hashtags, status, scheduledAt } =
+    const post = await prisma.post.findFirst({
+      where: { id: req.params.id, userId: req.userId },
+      include: { tiktokAccount: true, schedules: true },
+    });
+    if (!post) {
+      res.status(404).json(errorResponse('Post not found'));
+      return;
+    }
+    res.json(successResponse({ post }));
+  } catch {
+    res.status(500).json(errorResponse('Failed to fetch post'));
+  }
+}
+
+export async function createPost(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { tiktokAccountId, caption, videoUrl, thumbnailUrl, hashtags, scheduledAt } =
       req.body as {
         tiktokAccountId: string;
         caption: string;
         videoUrl?: string;
         thumbnailUrl?: string;
         hashtags?: string[];
-        status?: string;
         scheduledAt?: string;
       };
 
-    // Verify the TikTok account belongs to this user
+    if (!tiktokAccountId || !caption) {
+      res.status(400).json(errorResponse('tiktokAccountId and caption are required'));
+      return;
+    }
+
     const account = await prisma.tikTokAccount.findFirst({
       where: { id: tiktokAccountId, userId: req.userId },
     });
-
     if (!account) {
-      res.status(404).json(fail('TikTok account not found'));
+      res.status(404).json(errorResponse('TikTok account not found'));
       return;
     }
 
     const post = await prisma.post.create({
       data: {
-        userId: req.userId!,
+        userId: req.userId,
         tiktokAccountId,
         caption,
         videoUrl,
         thumbnailUrl,
         hashtags: hashtags ?? [],
-        status: (status as PostStatus) ?? PostStatus.DRAFT,
         scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
+        status: scheduledAt ? 'SCHEDULED' : 'DRAFT',
       },
     });
-
-    res.status(201).json(ok(post));
-  } catch (err) {
-    next(err);
+    res.status(201).json(successResponse({ post }));
+  } catch {
+    res.status(500).json(errorResponse('Failed to create post'));
   }
 }
 
-// GET /api/posts/:id
-export async function getPost(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
-  try {
-    const post = await prisma.post.findFirst({
-      where: { id: req.params['id'], userId: req.userId },
-      include: { tiktokAccount: { select: { accountName: true } } },
-    });
-
-    if (!post) {
-      res.status(404).json(fail('Post not found'));
-      return;
-    }
-
-    res.json(ok(post));
-  } catch (err) {
-    next(err);
-  }
-}
-
-// PUT /api/posts/:id
-export async function updatePost(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function updatePost(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const existing = await prisma.post.findFirst({
-      where: { id: req.params['id'], userId: req.userId },
+      where: { id: req.params.id, userId: req.userId },
     });
-
     if (!existing) {
-      res.status(404).json(fail('Post not found'));
+      res.status(404).json(errorResponse('Post not found'));
       return;
     }
 
-    const { caption, videoUrl, thumbnailUrl, hashtags, status, scheduledAt } = req.body as Partial<{
-      caption: string;
-      videoUrl: string;
-      thumbnailUrl: string;
-      hashtags: string[];
-      status: string;
-      scheduledAt: string;
-    }>;
+    const { caption, videoUrl, thumbnailUrl, hashtags, status, scheduledAt } =
+      req.body as Partial<{
+        caption: string;
+        videoUrl: string;
+        thumbnailUrl: string;
+        hashtags: string[];
+        status: 'DRAFT' | 'SCHEDULED' | 'PUBLISHING' | 'PUBLISHED' | 'FAILED';
+        scheduledAt: string;
+      }>;
 
     const post = await prisma.post.update({
-      where: { id: existing.id },
+      where: { id: req.params.id },
       data: {
         ...(caption !== undefined && { caption }),
         ...(videoUrl !== undefined && { videoUrl }),
         ...(thumbnailUrl !== undefined && { thumbnailUrl }),
         ...(hashtags !== undefined && { hashtags }),
-        ...(status !== undefined && { status: status as PostStatus }),
+        ...(status !== undefined && { status }),
         ...(scheduledAt !== undefined && { scheduledAt: new Date(scheduledAt) }),
       },
     });
-
-    res.json(ok(post));
-  } catch (err) {
-    next(err);
+    res.json(successResponse({ post }));
+  } catch {
+    res.status(500).json(errorResponse('Failed to update post'));
   }
 }
 
-// DELETE /api/posts/:id
-export async function deletePost(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function deletePost(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const existing = await prisma.post.findFirst({
-      where: { id: req.params['id'], userId: req.userId },
+      where: { id: req.params.id, userId: req.userId },
     });
-
     if (!existing) {
-      res.status(404).json(fail('Post not found'));
+      res.status(404).json(errorResponse('Post not found'));
       return;
     }
-
-    await prisma.post.delete({ where: { id: existing.id } });
-
-    res.json(ok({ deleted: true }));
-  } catch (err) {
-    next(err);
+    await prisma.post.delete({ where: { id: req.params.id } });
+    res.json(successResponse({ message: 'Post deleted' }));
+  } catch {
+    res.status(500).json(errorResponse('Failed to delete post'));
   }
 }

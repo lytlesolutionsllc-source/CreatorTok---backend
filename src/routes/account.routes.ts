@@ -1,40 +1,28 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import {
   getAccounts,
-  createAccount,
   getAccount,
+  createAccount,
   updateAccount,
   deleteAccount,
 } from '../controllers/account.controller';
-import { authenticate } from '../middleware/auth.middleware';
-import { validate } from '../middleware/validate.middleware';
+import { authMiddleware } from '../middleware/auth.middleware';
+import { AuthenticatedRequest } from '../types';
 
 const router = Router();
 
-router.use(authenticate);
+function wrap(fn: (req: AuthenticatedRequest, res: Response) => Promise<void>) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    authMiddleware(req as AuthenticatedRequest, res, () => {
+      fn(req as AuthenticatedRequest, res).catch(next);
+    });
+  };
+}
 
-// GET /api/accounts
-router.get('/', getAccounts);
-
-// POST /api/accounts
-router.post(
-  '/',
-  validate([
-    { field: 'accountName', type: 'string' },
-    { field: 'accessToken', type: 'string' },
-    { field: 'refreshToken', type: 'string' },
-    { field: 'tokenExpiresAt', type: 'string' },
-  ]),
-  createAccount,
-);
-
-// GET /api/accounts/:id
-router.get('/:id', getAccount);
-
-// PUT /api/accounts/:id
-router.put('/:id', updateAccount);
-
-// DELETE /api/accounts/:id
-router.delete('/:id', deleteAccount);
+router.get('/', wrap(getAccounts));
+router.get('/:id', wrap(getAccount));
+router.post('/', wrap(createAccount));
+router.put('/:id', wrap(updateAccount));
+router.delete('/:id', wrap(deleteAccount));
 
 export default router;

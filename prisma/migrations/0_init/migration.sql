@@ -9,6 +9,7 @@ CREATE TABLE "User" (
     "name" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
@@ -24,6 +25,7 @@ CREATE TABLE "TikTokAccount" (
     "followerCount" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+
     CONSTRAINT "TikTokAccount_pkey" PRIMARY KEY ("id")
 );
 
@@ -41,6 +43,7 @@ CREATE TABLE "Post" (
     "publishedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+
     CONSTRAINT "Post_pkey" PRIMARY KEY ("id")
 );
 
@@ -56,6 +59,7 @@ CREATE TABLE "Schedule" (
     "nextRunAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+
     CONSTRAINT "Schedule_pkey" PRIMARY KEY ("id")
 );
 

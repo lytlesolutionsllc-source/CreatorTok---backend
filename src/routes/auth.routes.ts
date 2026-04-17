@@ -1,32 +1,23 @@
 import { Router } from 'express';
 import { register, login, getMe } from '../controllers/auth.controller';
-import { authenticate } from '../middleware/auth.middleware';
-import { validate } from '../middleware/validate.middleware';
+import { authMiddleware } from '../middleware/auth.middleware';
+import { AuthenticatedRequest } from '../types';
+import { Request, Response, NextFunction } from 'express';
 
 const router = Router();
 
-// POST /api/auth/register
-router.post(
-  '/register',
-  validate([
-    { field: 'email', type: 'string' },
-    { field: 'password', type: 'string' },
-    { field: 'name', type: 'string' },
-  ]),
-  register,
-);
+function authHandler(
+  fn: (req: AuthenticatedRequest, res: Response) => Promise<void>
+) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    authMiddleware(req as AuthenticatedRequest, res, () => {
+      fn(req as AuthenticatedRequest, res).catch(next);
+    });
+  };
+}
 
-// POST /api/auth/login
-router.post(
-  '/login',
-  validate([
-    { field: 'email', type: 'string' },
-    { field: 'password', type: 'string' },
-  ]),
-  login,
-);
-
-// GET /api/auth/me
-router.get('/me', authenticate, getMe);
+router.post('/register', (req, res, next) => register(req, res).catch(next));
+router.post('/login', (req, res, next) => login(req, res).catch(next));
+router.get('/me', authHandler(getMe));
 
 export default router;

@@ -1,5 +1,5 @@
 node_modules/
 dist/
 .env
-prisma/*.db
-*.js.map
+*.db
+package-lock.json
