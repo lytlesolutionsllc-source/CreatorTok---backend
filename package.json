@@ -1,5 +1,42 @@
 {
+  "name": "creator-tok-backend",
+  "version": "1.0.0",
+  "description": "Multi-account TikTok content calendar and scheduling platform - Backend",
+  "main": "dist/index.js",
   "scripts": {
-    "postbuild": "cp dist/index.js api/index.js"
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "build": "prisma generate && prisma migrate deploy && tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.13.0",
+    "axios": "^1.15.0",
+    "bcryptjs": "^2.4.3",
+    "bull": "^3.28.0",
+    "bullmq": "^5.7.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^7.1.0",
+    "ioredis": "^5.3.2",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.0",
+    "multer": "^2.1.1",
+    "redis": "^3.1.2",
+    "typeorm": "^0.3.28"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^20.12.0",
+    "@vercel/node": "^3.0.0",
+    "nodemon": "^3.1.0",
+    "prisma": "^5.13.0",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.3.5"
   }
 }
