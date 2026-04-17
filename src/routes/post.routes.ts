@@ -1,38 +1,28 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import {
   getPosts,
-  createPost,
   getPost,
+  createPost,
   updatePost,
   deletePost,
 } from '../controllers/post.controller';
-import { authenticate } from '../middleware/auth.middleware';
-import { validate } from '../middleware/validate.middleware';
+import { authMiddleware } from '../middleware/auth.middleware';
+import { AuthenticatedRequest } from '../types';
 
 const router = Router();
 
-router.use(authenticate);
+function wrap(fn: (req: AuthenticatedRequest, res: Response) => Promise<void>) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    authMiddleware(req as AuthenticatedRequest, res, () => {
+      fn(req as AuthenticatedRequest, res).catch(next);
+    });
+  };
+}
 
-// GET /api/posts
-router.get('/', getPosts);
-
-// POST /api/posts
-router.post(
-  '/',
-  validate([
-    { field: 'tiktokAccountId', type: 'string' },
-    { field: 'caption', type: 'string' },
-  ]),
-  createPost,
-);
-
-// GET /api/posts/:id
-router.get('/:id', getPost);
-
-// PUT /api/posts/:id
-router.put('/:id', updatePost);
-
-// DELETE /api/posts/:id
-router.delete('/:id', deletePost);
+router.get('/', wrap(getPosts));
+router.get('/:id', wrap(getPost));
+router.post('/', wrap(createPost));
+router.put('/:id', wrap(updatePost));
+router.delete('/:id', wrap(deletePost));
 
 export default router;

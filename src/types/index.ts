@@ -1,12 +1,8 @@
 import { Request } from 'express';
 
-// ─── Extended Express Request ─────────────────────────────────────────────────
-
-export interface AuthRequest extends Request {
-  userId?: string;
+export interface AuthenticatedRequest extends Request {
+  userId: string;
 }
-
-// ─── API Response types ───────────────────────────────────────────────────────
 
 export interface ApiResponse<T = unknown> {
   success: boolean;
@@ -14,10 +10,10 @@ export interface ApiResponse<T = unknown> {
   error?: string;
 }
 
-export function ok<T>(data: T): ApiResponse<T> {
+export function successResponse<T>(data: T): ApiResponse<T> {
   return { success: true, data };
 }
 
-export function fail(error: string): ApiResponse<never> {
+export function errorResponse(error: string): ApiResponse {
   return { success: false, error };
 }

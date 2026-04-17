@@ -1,22 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { fail } from '../types';
-
-export interface AppError extends Error {
-  status?: number;
-}
+import { errorResponse } from '../types';
 
 export function errorMiddleware(
-  err: AppError,
+  err: Error,
   _req: Request,
   res: Response,
-  _next: NextFunction,
+  _next: NextFunction
 ): void {
-  const status = err.status ?? 500;
-  const message = err.message ?? 'Internal server error';
-
-  if (status === 500) {
-    console.error('[Error]', err);
-  }
-
-  res.status(status).json(fail(message));
+  console.error(err.stack);
+  res.status(500).json(errorResponse(err.message || 'Internal server error'));
 }

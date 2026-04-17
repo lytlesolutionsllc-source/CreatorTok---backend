@@ -1,12 +1,16 @@
 import { Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt';
-import { AuthRequest, fail } from '../types';
+import { AuthenticatedRequest, errorResponse } from '../types';
 
-export function authenticate(req: AuthRequest, res: Response, next: NextFunction): void {
+export function authMiddleware(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): void {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json(fail('No token provided'));
+    res.status(401).json(errorResponse('No token provided'));
     return;
   }
 
@@ -17,6 +21,6 @@ export function authenticate(req: AuthRequest, res: Response, next: NextFunction
     req.userId = payload.userId;
     next();
   } catch {
-    res.status(401).json(fail('Invalid or expired token'));
+    res.status(401).json(errorResponse('Invalid or expired token'));
   }
 }

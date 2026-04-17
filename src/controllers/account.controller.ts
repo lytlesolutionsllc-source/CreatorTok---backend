@@ -1,22 +1,35 @@
-import { Response, NextFunction } from 'express';
-import { AuthRequest, ok, fail } from '../types';
-import prisma from '../services/prisma.service';
+import { Response } from 'express';
+import { prisma } from '../services/prisma.service';
+import { AuthenticatedRequest, successResponse, errorResponse } from '../types';
 
-// GET /api/accounts
-export async function getAccounts(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function getAccounts(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const accounts = await prisma.tikTokAccount.findMany({
       where: { userId: req.userId },
       orderBy: { createdAt: 'desc' },
     });
-    res.json(ok(accounts));
-  } catch (err) {
-    next(err);
+    res.json(successResponse({ accounts }));
+  } catch {
+    res.status(500).json(errorResponse('Failed to fetch accounts'));
   }
 }
 
-// POST /api/accounts
-export async function createAccount(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function getAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const account = await prisma.tikTokAccount.findFirst({
+      where: { id: req.params.id, userId: req.userId },
+    });
+    if (!account) {
+      res.status(404).json(errorResponse('Account not found'));
+      return;
+    }
+    res.json(successResponse({ account }));
+  } catch {
+    res.status(500).json(errorResponse('Failed to fetch account'));
+  }
+}
+
+export async function createAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { accountName, accessToken, refreshToken, tokenExpiresAt, profileUrl, followerCount } =
       req.body as {
@@ -28,9 +41,14 @@ export async function createAccount(req: AuthRequest, res: Response, next: NextF
         followerCount?: number;
       };
 
+    if (!accountName || !accessToken || !refreshToken || !tokenExpiresAt) {
+      res.status(400).json(errorResponse('accountName, accessToken, refreshToken, and tokenExpiresAt are required'));
+      return;
+    }
+
     const account = await prisma.tikTokAccount.create({
       data: {
-        userId: req.userId!,
+        userId: req.userId,
         accountName,
         accessToken,
         refreshToken,
@@ -39,40 +57,19 @@ export async function createAccount(req: AuthRequest, res: Response, next: NextF
         followerCount: followerCount ?? 0,
       },
     });
-
-    res.status(201).json(ok(account));
-  } catch (err) {
-    next(err);
+    res.status(201).json(successResponse({ account }));
+  } catch {
+    res.status(500).json(errorResponse('Failed to create account'));
   }
 }
 
-// GET /api/accounts/:id
-export async function getAccount(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
-  try {
-    const account = await prisma.tikTokAccount.findFirst({
-      where: { id: req.params['id'], userId: req.userId },
-    });
-
-    if (!account) {
-      res.status(404).json(fail('Account not found'));
-      return;
-    }
-
-    res.json(ok(account));
-  } catch (err) {
-    next(err);
-  }
-}
-
-// PUT /api/accounts/:id
-export async function updateAccount(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function updateAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const existing = await prisma.tikTokAccount.findFirst({
-      where: { id: req.params['id'], userId: req.userId },
+      where: { id: req.params.id, userId: req.userId },
     });
-
     if (!existing) {
-      res.status(404).json(fail('Account not found'));
+      res.status(404).json(errorResponse('Account not found'));
       return;
     }
 
@@ -87,7 +84,7 @@ export async function updateAccount(req: AuthRequest, res: Response, next: NextF
       }>;
 
     const account = await prisma.tikTokAccount.update({
-      where: { id: existing.id },
+      where: { id: req.params.id },
       data: {
         ...(accountName !== undefined && { accountName }),
         ...(accessToken !== undefined && { accessToken }),
@@ -97,29 +94,24 @@ export async function updateAccount(req: AuthRequest, res: Response, next: NextF
         ...(followerCount !== undefined && { followerCount }),
       },
     });
-
-    res.json(ok(account));
-  } catch (err) {
-    next(err);
+    res.json(successResponse({ account }));
+  } catch {
+    res.status(500).json(errorResponse('Failed to update account'));
   }
 }
 
-// DELETE /api/accounts/:id
-export async function deleteAccount(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function deleteAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const existing = await prisma.tikTokAccount.findFirst({
-      where: { id: req.params['id'], userId: req.userId },
+      where: { id: req.params.id, userId: req.userId },
     });
-
     if (!existing) {
-      res.status(404).json(fail('Account not found'));
+      res.status(404).json(errorResponse('Account not found'));
       return;
     }
-
-    await prisma.tikTokAccount.delete({ where: { id: existing.id } });
-
-    res.json(ok({ deleted: true }));
-  } catch (err) {
-    next(err);
+    await prisma.tikTokAccount.delete({ where: { id: req.params.id } });
+    res.json(successResponse({ message: 'Account deleted' }));
+  } catch {
+    res.status(500).json(errorResponse('Failed to delete account'));
   }
 }
