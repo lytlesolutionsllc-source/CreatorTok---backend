@@ -12,6 +12,7 @@ import authRoutes from './routes/auth.routes';
 import accountRoutes from './routes/account.routes';
 import postRoutes from './routes/post.routes';
 import scheduleRoutes from './routes/schedule.routes';
+import tiktokRoutes from './routes/tiktok.routes';
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/accounts', apiLimiter, accountRoutes);
 app.use('/api/posts', apiLimiter, postRoutes);
 app.use('/api/schedules', apiLimiter, scheduleRoutes);
+app.use('/api/tiktok', apiLimiter, tiktokRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {
