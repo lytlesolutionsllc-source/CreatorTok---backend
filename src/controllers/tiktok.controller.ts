@@ -124,7 +124,8 @@ export async function tiktokCallback(req: Request, res: Response): Promise<void>
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
     tokenData = tokenRes.data;
-  } catch {
+  } catch (err) {
+    console.error('TikTok token exchange failed:', err instanceof Error ? err.message : err);
     res.redirect(`${frontendUrl}/dashboard/accounts?error=${encodeURIComponent('Failed to exchange authorization code for access token')}`);
     return;
   }
@@ -136,7 +137,8 @@ export async function tiktokCallback(req: Request, res: Response): Promise<void>
       { headers: { Authorization: `Bearer ${tokenData.access_token}` } }
     );
     userInfo = userRes.data;
-  } catch {
+  } catch (err) {
+    console.error('TikTok user info fetch failed:', err instanceof Error ? err.message : err);
     res.redirect(`${frontendUrl}/dashboard/accounts?error=${encodeURIComponent('Failed to fetch TikTok user profile')}`);
     return;
   }
@@ -147,6 +149,7 @@ export async function tiktokCallback(req: Request, res: Response): Promise<void>
     return;
   }
 
+  // Prefer username → display_name → open_id as a last-resort technical identifier
   const accountName = tiktokUser.username ?? tiktokUser.display_name ?? tiktokUser.open_id;
   const tokenExpiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
 
@@ -181,7 +184,8 @@ export async function tiktokCallback(req: Request, res: Response): Promise<void>
     });
 
     res.redirect(`${frontendUrl}/dashboard/accounts?success=true`);
-  } catch {
+  } catch (err) {
+    console.error('Failed to save TikTok account:', err instanceof Error ? err.message : err);
     res.redirect(`${frontendUrl}/dashboard/accounts?error=${encodeURIComponent('Failed to save TikTok account')}`);
   }
 }
@@ -202,7 +206,8 @@ export async function getTikTokAccountStatus(req: AuthenticatedRequest, res: Res
       orderBy: { createdAt: 'desc' },
     });
     res.json(successResponse({ accounts }));
-  } catch {
+  } catch (err) {
+    console.error('Failed to fetch TikTok accounts:', err instanceof Error ? err.message : err);
     res.status(500).json(errorResponse('Failed to fetch TikTok accounts'));
   }
 }

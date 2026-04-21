@@ -2,7 +2,9 @@
 ALTER TABLE "TikTokAccount" ADD COLUMN "openId" TEXT NOT NULL DEFAULT '';
 ALTER TABLE "TikTokAccount" ADD COLUMN "displayName" TEXT;
 
--- Populate openId for any existing rows using their id so the unique constraint can be applied
+-- Populate openId for any existing rows using their id so the unique constraint can be applied.
+-- NOTE: Existing accounts populated this way will not have a valid TikTok open_id and will need
+-- to re-authenticate via the TikTok OAuth flow to obtain their real open_id.
 UPDATE "TikTokAccount" SET "openId" = id WHERE "openId" = '';
 
 -- Remove the temporary default
