@@ -19,13 +19,17 @@ const FRONTEND_URL =
 /**
  * GET /api/tiktok/login
  * Redirects the authenticated user to TikTok's OAuth authorization page.
- * Expects the JWT token passed as ?token=<jwt> query parameter (needed because
- * the frontend navigates the browser directly to this URL rather than making
- * an AJAX request with an Authorization header).
+ * Accepts the JWT via ?token=<jwt> query parameter (browser navigation) or
+ * as a standard Authorization: Bearer <jwt> header (AJAX requests).
  */
 router.get('/login', (req: Request, res: Response, next: NextFunction) => {
   (async () => {
-    const { token } = req.query as { token?: string };
+    // Accept token from query param (browser redirect) or Authorization header (AJAX).
+    const { token: queryToken } = req.query as { token?: string };
+    const authHeader = req.headers.authorization;
+    const headerToken =
+      authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const token = queryToken || headerToken;
 
     if (!token) {
       res.status(401).json(errorResponse('Authentication token is required'));
