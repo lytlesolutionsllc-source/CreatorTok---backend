@@ -31,9 +31,11 @@ export async function getAccount(req: AuthenticatedRequest, res: Response): Prom
 
 export async function createAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const { accountName, accessToken, refreshToken, tokenExpiresAt, profileUrl, followerCount } =
+    const { accountName, openId, displayName, accessToken, refreshToken, tokenExpiresAt, profileUrl, followerCount } =
       req.body as {
         accountName: string;
+        openId: string;
+        displayName?: string;
         accessToken: string;
         refreshToken: string;
         tokenExpiresAt: string;
@@ -41,8 +43,8 @@ export async function createAccount(req: AuthenticatedRequest, res: Response): P
         followerCount?: number;
       };
 
-    if (!accountName || !accessToken || !refreshToken || !tokenExpiresAt) {
-      res.status(400).json(errorResponse('accountName, accessToken, refreshToken, and tokenExpiresAt are required'));
+    if (!accountName || !openId || !accessToken || !refreshToken || !tokenExpiresAt) {
+      res.status(400).json(errorResponse('accountName, openId, accessToken, refreshToken, and tokenExpiresAt are required'));
       return;
     }
 
@@ -50,6 +52,8 @@ export async function createAccount(req: AuthenticatedRequest, res: Response): P
       data: {
         userId: req.userId,
         accountName,
+        openId,
+        displayName,
         accessToken,
         refreshToken,
         tokenExpiresAt: new Date(tokenExpiresAt),
