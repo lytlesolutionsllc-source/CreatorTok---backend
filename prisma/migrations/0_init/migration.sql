@@ -17,7 +17,9 @@ CREATE TABLE "User" (
 CREATE TABLE "TikTokAccount" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
+    "openId" TEXT NOT NULL,
     "accountName" TEXT NOT NULL,
+    "displayName" TEXT,
     "accessToken" TEXT NOT NULL,
     "refreshToken" TEXT NOT NULL,
     "tokenExpiresAt" TIMESTAMP(3) NOT NULL,
@@ -65,6 +67,9 @@ CREATE TABLE "Schedule" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TikTokAccount_userId_openId_key" ON "TikTokAccount"("userId", "openId");
 
 -- AddForeignKey
 ALTER TABLE "TikTokAccount" ADD CONSTRAINT "TikTokAccount_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
