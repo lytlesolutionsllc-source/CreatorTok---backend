@@ -9,12 +9,17 @@ export function authMiddleware(
 ): void {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  let token: string | undefined;
+  if (req.query.token && typeof req.query.token === 'string') {
+    token = req.query.token;
+  } else if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.slice(7);
+  }
+
+  if (!token) {
     res.status(401).json(errorResponse('No token provided'));
     return;
   }
-
-  const token = authHeader.slice(7);
 
   try {
     const payload = verifyToken(token);
