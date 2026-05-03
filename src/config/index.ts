@@ -10,4 +10,5 @@ export const config = {
   get jwtSecret() { return required('JWT_SECRET'); },
   get tiktokClientKey() { return process.env.TIKTOK_CLIENT_KEY || ''; },
   get tiktokClientSecret() { return process.env.TIKTOK_CLIENT_SECRET || ''; },
+  get openaiApiKey() { return process.env.OPENAI_API_KEY || ''; },
 } as const;
