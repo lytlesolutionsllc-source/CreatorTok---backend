@@ -37,6 +37,7 @@ cp .env.example .env
 | `JWT_SECRET` | Secret key for signing JWT tokens |
 | `TIKTOK_CLIENT_KEY` | TikTok API client key (optional) |
 | `TIKTOK_CLIENT_SECRET` | TikTok API client secret (optional) |
+| `OPENAI_API_KEY` | OpenAI API key for image generation (optional — required for `/api/images/generate`) |
 
 ### Database Setup
 
@@ -110,3 +111,40 @@ All responses follow the format:
 { "success": true, "data": { ... } }
 { "success": false, "error": "..." }
 ```
+
+### Images
+
+```
+POST /api/images/generate   — Generate an image from a text prompt using OpenAI (gpt-image-1)
+                              Body: { "prompt": "string" }
+                              Response: { "imageUrl": "data:image/png;base64,..." }
+
+POST /api/images/upload     — Upload your own image (multipart/form-data, field: "file")
+                              Allowed types: jpeg, png, gif, webp  |  Max size: 10 MB
+                              Response: { "imageUrl": "data:image/...;base64,..." }
+```
+
+> **Note:** No cloud storage is configured yet — both endpoints return a base64 data URL.
+> Set `OPENAI_API_KEY` in your environment to enable `/api/images/generate`.
+> TODO: Integrate S3/Cloudinary to return hosted URLs.
+
+### Music
+
+```
+GET /api/music/trending     — List trending music tracks (static seed list)
+GET /api/music/favorites    — List favorite music tracks (static seed list)
+```
+
+Track shape:
+
+```json
+{
+  "id": "string",
+  "title": "string",
+  "artist": "string",
+  "duration": 180,
+  "coverUrl": "string"
+}
+```
+
+> TODO: Replace static lists with a live music provider integration.
